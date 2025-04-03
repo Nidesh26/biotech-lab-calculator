@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilution Calculator</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+<div class="sidebar">
+    <a href="index.html">Home</a>
+    <a href="molarity.html">Molarity Calculator</a>
+    <a href="dilution.html">Dilution Calculator</a>
+    <a href="unit-conversion.html">Unit Conversion</a>
+    <a href="feedback.html">Feedback</a>
+</div>
+
+    <div class="container">
+        <h1>Dilution Calculator</h1>
+        <p>Calculate the final molarity (M2) of a solution after dilution using M1V1 = M2V2 formula.</p>
+
+        <div class="input-group">
+            <label for="m1">Initial Molarity (M1 in M):</label>
+            <input type="number" id="m1" placeholder="Enter initial molarity">
+        </div>
+
+        <div class="input-group">
+            <label for="v1">Initial Volume (V1 in L):</label>
+            <input type="number" id="v1" placeholder="Enter initial volume">
+        </div>
+
+        <div class="input-group">
+            <label for="v2">Final Volume (V2 in L):</label>
+            <input type="number" id="v2" placeholder="Enter final volume">
+        </div>
+
+        <button id="calculateDilution">Calculate</button>
+        <p id="dilutionResult">Final Molarity (M2): -- M</p>
+    </div>
+
+    <script src="dilution.js"></script>
+</body>
+</html>

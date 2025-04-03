@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molarity Calculator</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+<div class="sidebar">
+    <a href="index.html">Home</a>
+    <a href="molarity.html">Molarity Calculator</a>
+    <a href="dilution.html">Dilution Calculator</a>
+    <a href="unit-conversion.html">Unit Conversion</a>
+    <a href="feedback.html">Feedback</a>
+</div>
+
+    <div class="container">
+        <h1>Molarity Calculator</h1>
+        <p>Calculate the molarity (concentration) of a solution using moles of solute and volume of solution.</p>
+
+        <div class="input-group">
+            <label for="moles">Moles of Solute (mol):</label>
+            <input type="number" id="moles" placeholder="Enter moles">
+        </div>
+
+        <div class="input-group">
+            <label for="volume">Volume of Solution (L):</label>
+            <input type="number" id="volume" placeholder="Enter volume in liters">
+        </div>
+
+        <button id="calculateMolarity">Calculate</button>
+        <p id="molarityResult">Molarity: -- M</p>
+    </div>
+
+    <script src="molarity.js"></script>
+</body>
+</html>

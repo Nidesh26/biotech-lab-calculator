@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Conversions</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Lab Calculator</h2>
+        <ul>
+            <li><a href="conversions.html">Unit Conversions</a></li>
+            <li><a href="molarity.html">Molarity & Dilution</a></li>
+            <li><a href="history.html">Calculation History</a></li>
+            <li><a href="feedback.html">Feedback</a></li>
+            <li><a href="../index.html">🏠 Home</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Unit Conversions</h1>
+        <p>Convert between different lab units easily.</p>
+
+        <label for="unit-type">Select a Unit Type:</label>
+        <select id="unit-type">
+            <option value="length">Length</option>
+            <option value="mass">Mass</option>
+            <option value="volume">Volume</option>
+            <option value="temperature">Temperature</option>
+        </select>
+
+        <div id="conversion-fields">
+            <input type="number" id="input-value" placeholder="Enter value">
+            <select id="from-unit"></select>
+            <span>to</span>
+            <select id="to-unit"></select>
+            <button id="convert">Calculate</button>
+        </div>
+
+        <p id="result"></p>
+    </div>
+
+    <script src="../script.js" defer></script>
+</body>
+</html>
