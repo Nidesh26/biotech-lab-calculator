@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Process Designer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      position: relative;
+      width: 200px;
+      background-color: #0a2f54;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+    }
+
+    .unit {
+      padding: 10px;
+      background-color: #1864ab;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: grab;
+      text-align: center;
+    }
+
+    .canvas {
+      flex-grow: 1;
+      background-color: #e0f0ff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .unit-on-canvas {
+      position: absolute;
+      width: 100px;
+      height: 60px;
+      background-color: #4dabf7;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 60px;
+      color: white;
+      cursor: move;
+      user-select: none;
+    }
+    .unit-on-canvas {
+  position: absolute;
+  width: 100px;
+  height: 60px;
+  background-color: #4dabf7;
+  border-radius: 8px;
+  text-align: center;
+  color: white;
+  cursor: move;
+  user-select: none;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.unit-on-canvas span {
+  display: block;
+  margin-top: 10px;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+.home-link {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background-color: #0a2f54;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background-color 0.3s;
+}
+
+.home-link:hover {
+  background-color: #1864ab;
+}
+
+
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Units</h2>
+    <div class="unit" draggable="true" data-type="Reactor">Reactor</div>
+    <div class="unit" draggable="true" data-type="Mixer">Mixer</div>
+    <div class="unit" draggable="true" data-type="Tank">Tank</div>
+    <div class="unit" draggable="true" data-type="Filter">Filter</div>
+
+    <a href="../index.html" class="home-link">🏠 Home</a>
+
+  </div>
+
+  <div class="canvas" id="canvas">
+    <!-- Units will appear here -->
+  </div>
+  <div style="position: absolute; top: 10px; right: 20px; z-index: 10;">
+    <button onclick="saveLayout()">💾 Save</button>
+    <input type="file" id="loadInput" style="display:none;" onchange="loadLayout(event)">
+    <button onclick="document.getElementById('loadInput').click()">📂 Load</button>
+    <button onclick="exportToImage()">🖼️ Export</button>
+  </div>
+  
+
+<script>
+  const canvas = document.getElementById('canvas');
+  let draggedUnitType = null;
+  let firstSelected = null;
+  const connections = [];
+
+  document.querySelectorAll('.unit').forEach(unit => {
+    unit.addEventListener('dragstart', (e) => {
+      draggedUnitType = e.target.getAttribute('data-type');
+    });
+  });
+
+  canvas.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+
+    const newUnit = document.createElement('div');
+    newUnit.className = 'unit-on-canvas';
+    newUnit.innerHTML = `
+  <span>${draggedUnitType}</span>
+  <button class="delete-btn">&times;</button>
+`;
+
+    newUnit.dataset.id = Date.now().toString();
+    newUnit.style.left = `${e.offsetX}px`;
+    newUnit.style.top = `${e.offsetY}px`;
+
+    makeDraggable(newUnit);
+    makeConnectable(newUnit);
+    newUnit.querySelector('.delete-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const toRemove = connections.filter(conn => conn.from === newUnit || conn.to === newUnit);
+    toRemove.forEach(conn => {
+      conn.line.remove();
+      const index = connections.indexOf(conn);
+      if (index > -1) connections.splice(index, 1);
+    });
+    if (firstSelected === newUnit) firstSelected = null;
+    newUnit.remove();
+  });
+    canvas.appendChild(newUnit);
+  });
+
+  function makeDraggable(el) {
+  let offsetX = 0, offsetY = 0;
+  let isDragging = false;
+
+  const onMouseDown = (e) => {
+    if (e.button === 2) return; // Ignore right-click
+    isDragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const onMouseMove = (e) => {
+    if (!isDragging) return;
+    el.style.left = e.pageX - offsetX + 'px';
+    el.style.top = e.pageY - offsetY + 'px';
+    updateConnections();
+  };
+
+  const onMouseUp = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+
+  el.addEventListener('mousedown', onMouseDown);
+}
+
+
+  function makeConnectable(el) {
+    el.addEventListener('click', () => {
+      if (!firstSelected) {
+        firstSelected = el;
+        el.style.border = '2px solid yellow';
+      } else {
+        if (firstSelected !== el) {
+          const line = new LeaderLine(firstSelected, el, {
+            color: 'black',
+            size: 4,
+            path: 'straight'
+          });
+          connections.push({ from: firstSelected, to: el, line });
+        }
+        firstSelected.style.border = 'none';
+        firstSelected = null;
+      }
+    });
+  }
+
+  function updateConnections() {
+    connections.forEach(conn => {
+      conn.line.position();
+    });
+  }
+  function saveLayout() {
+  const units = Array.from(document.querySelectorAll('.unit-on-canvas')).map(unit => {
+    return {
+      type: unit.querySelector('span').innerText,
+      x: parseInt(unit.style.left),
+      y: parseInt(unit.style.top),
+      id: unit.dataset.id
+    };
+  });
+
+  const conns = connections.map(c => ({
+    from: c.from.dataset.id,
+    to: c.to.dataset.id
+  }));
+
+  const data = { units, conns };
+  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "layout.json";
+  a.click();
+}
+
+function loadLayout(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = JSON.parse(e.target.result);
+    canvas.innerHTML = '';
+    connections.length = 0;
+    firstSelected = null;
+
+    const idToElement = {};
+
+    data.units.forEach(unit => {
+      const newUnit = document.createElement('div');
+      newUnit.className = 'unit-on-canvas';
+      newUnit.dataset.id = unit.id;
+      newUnit.innerHTML = `<span>${unit.type}</span><button class="delete-btn">&times;</button>`;
+      newUnit.style.left = unit.x + 'px';
+      newUnit.style.top = unit.y + 'px';
+      canvas.appendChild(newUnit);
+      makeDraggable(newUnit);
+      makeConnectable(newUnit);
+      idToElement[unit.id] = newUnit;
+    });
+
+    data.conns.forEach(c => {
+      const line = new LeaderLine(idToElement[c.from], idToElement[c.to], {
+        color: 'black', size: 4, path: 'straight'
+      });
+      connections.push({ from: idToElement[c.from], to: idToElement[c.to], line });
+    });
+  };
+  reader.readAsText(file);
+}
+
+function exportToImage() {
+  html2canvas(canvas).then(canvasImg => {
+    const link = document.createElement("a");
+    link.download = "process-diagram.png";
+    link.href = canvasImg.toDataURL("image/png");
+    link.click();
+  });
+}
+
+</script>
+
+
+</body>
+</html>
